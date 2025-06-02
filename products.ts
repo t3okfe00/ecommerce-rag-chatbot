@@ -1,4 +1,4 @@
-[
+export const products =[
   {
     "id": 159,
     "title": "Classic Black Hooded Sweatshirt",
