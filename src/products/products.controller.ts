@@ -20,9 +20,7 @@ export class ProductsController {
     async getEmbedding(@Query('text') text: string){
         console.log("Embedding runs with text: ",text);
         const embedding = await this.openaiService.getEmbedding(text);
-        
+        console.log("Embedding: ",embedding);
         return embedding;
     }
-
-
 }

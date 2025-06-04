@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException, BadRequestException, InternalServerErrorException } from "@nestjs/common";
 import { OpenAI } from "openai";
 import { ConfigService } from "@nestjs/config";
 
@@ -23,12 +23,27 @@ export class OpenaiService {
     }
 
 
-    async getEmbedding(text: string,model:string = this.embeddingModel) : Promise<OpenAIEmbeddingResponse>{
-        const openAIEmbeddingResponse = await this.openaiService.embeddings.create({
-            input: text,
-            model: model,
-        })
-
-        return openAIEmbeddingResponse;
+    async getEmbedding(text: string,model:string = this.embeddingModel){
+        try {
+            const openAIEmbeddingResponse = await this.openaiService.embeddings.create({
+                input: text,
+                model: model,
+            })
+    
+            return openAIEmbeddingResponse;
+            
+        }
+        catch (error) {
+            
+            if(error.code === "invalid_api_key"){
+               throw new UnauthorizedException("Invalid API key");
+            }else if(error.status >= 400 && error.status < 500){
+                throw new BadRequestException("Bad request to OpanAI");
+            }else{
+                throw new InternalServerErrorException("An error occurred while generating the embedding");
+            }
+        }
+       
     }
+     
 }
