@@ -30,6 +30,7 @@ export class OpenaiService {
                 model: model,
             })
     
+            console.log("Returning embedding response: from openai.service.ts");
             return openAIEmbeddingResponse;
             
         }
