@@ -27,16 +27,33 @@ export class ProductsController {
         console.log("Embedding: ",embedding);
         return embedding;
     }
+    
 
     @Get("/recommend")
     async recommendProducts(@Query('query') query: string){
         console.log("Recommendation runs with query: ",query);
+        const isProductRelated = await this.openaiService.isProductRelatedQuery(query);
+        if(isProductRelated === "true"){
+        console.log("Is product related: ",isProductRelated);
         const embedding = await this.openaiService.getEmbedding(query);
         const results = await this.vectorStore.queryVector(embedding);
         const findProductsFromStore = products.filter(product=>{
             return results.find(result=>product.id.toString() === result.id.toString());
-        })
-        
-        return findProductsFromStore;
+        }).map(product=>product.title);
+        const description = await this.openaiService.describeProductsInChat(query,findProductsFromStore);
+        console.log("Description: ",description);
+        return {
+            type: "Product Recommendations",
+            products: findProductsFromStore,
+            description: description
+        };
+        }else{
+           const response = await this.openaiService.chatAsNormalBot(query);
+           console.log("Not product");
+           return {
+            type:"Normal ChatBot",
+            response: response
+           };
+        }
     }
 }
