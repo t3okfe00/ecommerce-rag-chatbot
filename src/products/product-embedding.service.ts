@@ -2,8 +2,14 @@ import { Injectable } from "@nestjs/common";
 import { VectorStore } from "../vector-store/vector-store.interface";
 import { OpenaiService } from "../openai/openai.service";
 
-
-
+interface ProductEmbeddingData {
+    id: number;
+    text: string;
+    metadata: {
+        category: string;
+        price: number;
+    };
+}
 
 @Injectable()
 export class ProductEmbeddingService {
@@ -12,24 +18,33 @@ export class ProductEmbeddingService {
         private readonly openaiService: OpenaiService
     ){}
 
-    async embedProduct(){
-        const text = "This is a test product";
+    async embedProducts(products: ProductEmbeddingData[]) {
+        // Extract all texts from products
+        const texts = products.map(product => product.text);
         
-
+        // Get embeddings for all texts at once
+        const embeddingResponse = await this.openaiService.getEmbedding(texts);
         
-        // TODO: get embedding from openai for the product 
-        const embedding = await this.openaiService.getEmbedding(text);
-        console.log("Embedding in product-embedding.service.ts: ",embedding);
-        const embeddingData = {
-            id:"25",
-           
-            values:embedding.data[0].embedding,
-            metadata:{
-                category:"test",
-                price:100
+        // Create the final structure with embeddings
+        const embeddingsWithMetadata = products.map((product, index) => ({
+            id: product.id.toString(),
+            values: embeddingResponse.data[index].embedding,
+            metadata: {
+                category: product.metadata.category,
+                price: product.metadata.price
             }
-        }
-        await this.vectorStore.upsertEmbedding(embeddingData);
+        }));
 
+        // Upsert all embeddings
+        for (const embedding of embeddingsWithMetadata) {
+            await this.vectorStore.upsertEmbedding(embedding);
+        }
+
+        return embeddingsWithMetadata;
+    }
+
+    async fetchProducts(){
+       const fetchedProducts = await this.vectorStore.fetchProducts();
+       console.log("Fetched products: ",fetchedProducts);
     }
 }

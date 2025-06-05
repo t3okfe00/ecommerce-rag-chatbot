@@ -34,7 +34,21 @@ export class PineconeVectorStoreService implements VectorStore {
     }
     
 
-    async searchEmbeddings(query: string): Promise<VectorItem[]> {
-        return [];
+    async queryVector(embedding: any): Promise<VectorItem[]> {
+        const embeddingValues = embedding.data[0].embedding;
+        const results = await this.index.query({
+            vector: embeddingValues,
+            topK: 3,
+            includeValues: true,
+        })
+        return results.matches;
+    }
+
+    async fetchProducts(): Promise<VectorItem[]> {
+       const results = await this.index.query({
+           id: "197",
+           topK: 3,
+       });
+       return results.matches;
     }
 }

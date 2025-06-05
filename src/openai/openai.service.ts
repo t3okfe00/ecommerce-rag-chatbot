@@ -23,7 +23,7 @@ export class OpenaiService {
     }
 
 
-    async getEmbedding(text: string,model:string = this.embeddingModel){
+    async getEmbedding(text: string | string[], model: string = this.embeddingModel) {
         try {
             const openAIEmbeddingResponse = await this.openaiService.embeddings.create({
                 input: text,
@@ -44,7 +44,6 @@ export class OpenaiService {
                 throw new InternalServerErrorException("An error occurred while generating the embedding");
             }
         }
-       
     }
      
 }
